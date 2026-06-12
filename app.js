@@ -233,15 +233,16 @@ function buildPreviewHtml(data) {
       </div>
 
       <section class="preview-section">
-        <table class="info-table">
-          <thead>
-            <tr><th colspan="4">Informasi Umum</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>Nama Penyusun</strong></td><td>${data.penyusun || "-"}</td>
-              <td><strong>Nama Guru</strong></td><td>${data.guru || "-"}</td>
-            </tr>
+        <div class="table-wrapper">
+          <table class="info-table">
+            <thead>
+              <tr><th colspan="4">Informasi Umum</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Nama Penyusun</strong></td><td>${data.penyusun || "-"}</td>
+                <td><strong>Nama Guru</strong></td><td>${data.guru || "-"}</td>
+              </tr>
             <tr>
               <td><strong>Nama Sekolah</strong></td><td>${data.sekolah || "-"}</td>
               <td><strong>Mata Pelajaran</strong></td><td>${data.mapel || "-"}</td>
@@ -260,6 +261,7 @@ function buildPreviewHtml(data) {
             </tr>
           </tbody>
         </table>
+      </div>
       </section>
 
       <section class="preview-section">
@@ -301,36 +303,40 @@ function buildPreviewHtml(data) {
 
       <section class="preview-section">
         <h3>Langkah-Langkah Pembelajaran</h3>
-        <table class="steps-table">
-          <thead>
-            <tr><th>Tahap</th><th>Deskripsi Kegiatan</th><th>Media</th><th>Keterangan</th></tr>
-          </thead>
-          <tbody>
-            ${Object.entries(langkahPembelajaran)
-              .map(
-                ([phase, desc]) =>
-                  `<tr><td>${phase}</td><td>${desc}</td><td>-</td><td></td></tr>`,
-              )
-              .join("")}
-          </tbody>
-        </table>
+        <div class="table-wrapper">
+          <table class="steps-table">
+            <thead>
+              <tr><th>Tahap</th><th>Deskripsi Kegiatan</th><th>Media</th><th>Keterangan</th></tr>
+            </thead>
+            <tbody>
+              ${Object.entries(langkahPembelajaran)
+                .map(
+                  ([phase, desc]) =>
+                    `<tr><td>${phase}</td><td>${desc}</td><td>-</td><td></td></tr>`,
+                )
+                .join("")}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <section class="preview-section">
         <h3>Tabel Aktivitas Pembelajaran</h3>
-        <table class="activity-table">
-          <thead>
-            <tr><th>Aktivitas</th><th>Deskripsi</th><th>Media</th></tr>
-          </thead>
-          <tbody>
-            ${activities
-              .map(
-                (item) =>
-                  `<tr><td>${item.act}</td><td>${item.desc}</td><td>${item.media}</td></tr>`,
-              )
-              .join("")}
-          </tbody>
-        </table>
+        <div class="table-wrapper">
+          <table class="activity-table">
+            <thead>
+              <tr><th>Aktivitas</th><th>Deskripsi</th><th>Media</th></tr>
+            </thead>
+            <tbody>
+              ${activities
+                .map(
+                  (item) =>
+                    `<tr><td>${item.act}</td><td>${item.desc}</td><td>${item.media}</td></tr>`,
+                )
+                .join("")}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <footer class="page-footer">
@@ -561,6 +567,39 @@ function bindEvents() {
       handleDownloadPdf();
     });
 
+  const menuToggle = document.getElementById("menuToggle");
+  const topbarActions = document.getElementById("topbarActions");
+  const drawerOverlay = document.getElementById("drawerOverlay");
+  const mobileSaveButton = document.getElementById("mobileSaveButton");
+  if (menuToggle && topbarActions) {
+    const toggleDrawer = () => {
+      topbarActions.classList.toggle("open");
+      topbarActions.classList.toggle("hidden");
+      if (drawerOverlay) {
+        drawerOverlay.classList.toggle("open");
+      }
+    };
+
+    menuToggle.addEventListener("click", toggleDrawer);
+    if (drawerOverlay) {
+      drawerOverlay.addEventListener("click", toggleDrawer);
+    }
+  }
+
+  if (mobileSaveButton) {
+    mobileSaveButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      if (topbarActions.classList.contains("open")) {
+        topbarActions.classList.remove("open");
+        topbarActions.classList.add("hidden");
+        if (drawerOverlay) {
+          drawerOverlay.classList.remove("open");
+        }
+      }
+      handleGenerate();
+    });
+  }
+
   document
     .getElementById("exportDocxButton")
     .addEventListener("click", (event) => {
@@ -570,7 +609,31 @@ function bindEvents() {
 
   document.getElementById("printButton").addEventListener("click", (event) => {
     event.preventDefault();
-    window.print();
+    const previewSection = document.getElementById("previewSection");
+    if (!previewSection) {
+      window.print();
+      return;
+    }
+
+    const printWindow = window.open("", "PRINT", "width=1000,height=800");
+    if (!printWindow) return;
+
+    printWindow.document
+      .write(`<!doctype html><html><head><title>Print Preview</title><style>
+      body { margin: 0; font-family: Inter, Calibri, Arial, sans-serif; }
+      .preview-shell, .preview-document { background: white; box-shadow: none; border-radius: 0; margin: 0; width: auto; max-width: none; padding: 20px; }
+      .preview-document * { color: black; }
+      table { width: 100%; border-collapse: collapse; }
+      th, td { border: 1px solid #d7ebff; padding: 6px 8px; }
+      thead { display: table-header-group; }
+      tfoot { display: table-footer-group; }
+    </style></head><body>
+      ${previewSection.innerHTML}
+    </body></html>`);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
   });
 
   document

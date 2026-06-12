@@ -44,6 +44,8 @@ function downloadPdf(element, filename) {
     const a4WidthMm = 210;
     const cloneWidthMm = a4WidthMm - pdfMarginMm * 2;
     clone.style.width = `${cloneWidthMm}mm`;
+    clone.style.maxWidth = "100%";
+    clone.style.minWidth = "auto";
     clone.style.boxSizing = "border-box";
     // keep clone content edge-to-edge; html2pdf `margin` will add page margins/gap
     clone.style.padding = "0";
