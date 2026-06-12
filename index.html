@@ -1,0 +1,206 @@
+﻿<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Modul Ajar Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="topbar">
+        <div>
+          <p class="eyebrow">Aplikasi Web</p>
+          <h1>Modul Ajar Generator</h1>
+          <p class="description">
+            Bangun modul ajar Kurikulum Merdeka profesional untuk SMP, SMA, dan
+            SMK tanpa backend.
+          </p>
+        </div>
+        <div class="action-row no-print">
+          <button class="button primary" id="generateButton">
+            Generate Modul
+          </button>
+          <button class="button secondary" id="downloadButton">
+            Download PDF
+          </button>
+          <button class="button secondary" id="exportDocxButton">
+            Export DOCX
+          </button>
+          <button class="button secondary" id="printButton">Print</button>
+          <button class="button secondary" id="chatgptButton">
+            Perbaiki dengan ChatGPT
+          </button>
+        </div>
+      </section>
+
+      <section class="view-tabs no-print">
+        <button class="tab-button active" data-view="editor">Editor</button>
+        <button class="tab-button" data-view="dashboard">Dashboard</button>
+      </section>
+
+      <section class="grid-layout" id="editorSection">
+        <aside class="card sidebar-card">
+          <h2>Informasi Sekolah</h2>
+
+          <!-- logo stored in a hidden field; only upload is visible -->
+          <input id="schoolLogo" type="hidden" />
+          <div class="field-group">
+            <label for="schoolLogoFile">Upload Logo Sekolah</label>
+            <div style="display: flex; gap: 8px; align-items: center">
+              <input id="schoolLogoFile" type="file" accept="image/*" />
+              <button
+                id="clearLogoButton"
+                class="button secondary"
+                type="button"
+              >
+                Hapus Logo
+              </button>
+            </div>
+            <small class="muted"
+              >Unggah PNG/JPEG; gambar akan disimpan secara lokal sebagai
+              data-URL.</small
+            >
+          </div>
+          <div class="field-group">
+            <label for="sekolah">Nama Sekolah</label>
+            <input
+              id="sekolah"
+              type="text"
+              placeholder="Contoh: SMP Negeri 1"
+            />
+          </div>
+          <div class="field-group">
+            <label for="tahunPelajaran">Tahun Pelajaran</label>
+            <input
+              id="tahunPelajaran"
+              type="text"
+              placeholder="Contoh: 2023/2024"
+            />
+          </div>
+          <div class="field-group">
+            <label for="guru">Nama Guru</label>
+            <input id="guru" type="text" placeholder="Contoh: Bapak/Ibu Guru" />
+          </div>
+          <div class="field-group">
+            <label for="nip">NIP/NPP</label>
+            <input id="nip" type="text" placeholder="Contoh: 123456789" />
+          </div>
+          <div class="field-group">
+            <label for="kepalaSekolah">Kepala Sekolah</label>
+            <input
+              id="kepalaSekolah"
+              type="text"
+              placeholder="Contoh: Drs. Ahmad"
+            />
+          </div>
+          <div class="field-group">
+            <label for="nipKepala">NIP Kepala Sekolah</label>
+            <input id="nipKepala" type="text" placeholder="Contoh: 123456789" />
+          </div>
+
+          <h2>Data Modul</h2>
+
+          <div class="field-group">
+            <label for="penyusun">Nama Penyusun</label>
+            <input id="penyusun" type="text" placeholder="Nama Penyusun" />
+          </div>
+          <div class="field-group">
+            <label for="mapel">Mata Pelajaran</label>
+            <select id="mapel"></select>
+          </div>
+          <div class="field-group">
+            <label for="materi">Materi</label>
+            <select id="materi"></select>
+          </div>
+          <div class="field-group horizontal-fields">
+            <div>
+              <label for="kelas">Kelas</label>
+              <input id="kelas" type="text" placeholder="X / XI / XII" />
+            </div>
+            <div>
+              <label for="fase">Fase</label>
+              <input id="fase" type="text" placeholder="Fase 2" />
+            </div>
+          </div>
+          <div class="field-group horizontal-fields">
+            <div>
+              <label for="pertemuan">Pertemuan Ke</label>
+              <input id="pertemuan" type="text" placeholder="1" />
+            </div>
+            <div>
+              <label for="waktu">Alokasi Waktu</label>
+              <input id="waktu" type="text" placeholder="2 x 45 menit" />
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label for="tujuan">Tujuan Pembelajaran</label>
+            <textarea
+              id="tujuan"
+              placeholder="Tuliskan tujuan pembelajaran jika ingin menyesuaikan"
+            ></textarea>
+          </div>
+
+          <div class="card note-card no-print">
+            <strong>Catatan:</strong>
+            <p>
+              Setiap perubahan disimpan otomatis. Gunakan "Generate Modul" untuk
+              mencatat riwayat modul.
+            </p>
+          </div>
+        </aside>
+
+        <section class="preview-shell" id="previewSection">
+          <div class="preview-document" id="previewDocument"></div>
+        </section>
+      </section>
+
+      <section class="dashboard-card hidden" id="dashboardSection">
+        <div class="dashboard-grid">
+          <div class="dashboard-stat">
+            <p class="stat-label">Jumlah Modul Dibuat</p>
+            <h2 id="statTotalModules">0</h2>
+          </div>
+          <div class="dashboard-stat">
+            <p class="stat-label">Mata Pelajaran Terakhir</p>
+            <h2 id="statLastSubject">-</h2>
+          </div>
+          <div class="dashboard-stat">
+            <p class="stat-label">Materi Terakhir</p>
+            <h2 id="statLastMaterial">-</h2>
+          </div>
+          <div class="dashboard-stat">
+            <p class="stat-label">Terakhir Dibuat</p>
+            <h2 id="statLastGeneratedAt">-</h2>
+          </div>
+        </div>
+
+        <div class="dashboard-history">
+          <h2>Riwayat Modul</h2>
+          <ol id="historyList"></ol>
+        </div>
+      </section>
+    </main>
+
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
+      defer
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.4.0/docx.umd.min.js"
+      defer
+    ></script>
+    <script src="subjects.js" defer></script>
+    <script src="generator.js" defer></script>
+    <script src="storage.js" defer></script>
+    <script src="export.js" defer></script>
+    <script src="app.js" defer></script>
+  </body>
+</html>
