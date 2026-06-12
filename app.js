@@ -401,6 +401,7 @@ function handleGenerate() {
   });
   updateDashboard();
   updatePreview();
+  alert("Modul berhasil disimpan!");
 }
 
 function handleDownloadPdf() {

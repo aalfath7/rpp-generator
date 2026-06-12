@@ -540,11 +540,14 @@ button {
 .preview-document {
   width: 100%;
   max-width: 900px;
-  min-height: 1050px;
   margin: 0 auto;
   padding: 28px;
   background: #ffffff;
   border-radius: 20px;
+  overflow: visible;
+  page-break-after: always;
+  orphans: 3;
+  widows: 3;
 }
 
 .preview-document .doc-header {
@@ -738,6 +741,30 @@ button {
   margin: 10mm;
 }
 
+/* Page break support */
+.preview-document section,
+.preview-document .preview-section,
+.info-table,
+.steps-table,
+.tujuan-box,
+.profil-table {
+  page-break-inside: avoid;
+}
+
+/* Allow tables to break across pages */
+.activity-table,
+.steps-table,
+.info-table {
+  page-break-inside: auto;
+}
+
+.preview-document p,
+.preview-document li,
+.preview-document td {
+  orphans: 3;
+  widows: 3;
+}
+
 @media print {
   .no-print {
     display: none;
@@ -753,17 +780,11 @@ button {
     margin: 0;
     width: auto;
     max-width: none;
-    padding: 0;
+    padding: 10mm;
+    page-break-after: auto;
   }
   .doc-header {
-    position: fixed;
-    top: 10mm;
-    left: 10mm;
-    right: 10mm;
-    background: white;
-  }
-  .preview-document {
-    padding-top: 48mm;
+    page-break-inside: avoid;
   }
   /* repeat table headers */
   thead {
@@ -774,5 +795,25 @@ button {
   }
   tr {
     page-break-inside: avoid;
+  }
+  h1,
+  h2,
+  h3 {
+    page-break-after: avoid;
+  }
+  h3 {
+    orphans: 3;
+  }
+  .preview-section {
+    page-break-inside: auto;
+  }
+  .preview-section h3 {
+    page-break-after: avoid;
+  }
+  /* Ensure tables can break properly */
+  .activity-table,
+  .steps-table,
+  .info-table {
+    page-break-inside: auto;
   }
 }
