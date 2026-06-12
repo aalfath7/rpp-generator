@@ -10,7 +10,9 @@
   nipKepala: document.getElementById("nipKepala"),
   penyusun: document.getElementById("penyusun"),
   mapel: document.getElementById("mapel"),
+  customMapel: document.getElementById("customMapel"),
   materi: document.getElementById("materi"),
+  customMateri: document.getElementById("customMateri"),
   kelas: document.getElementById("kelas"),
   fase: document.getElementById("fase"),
   pertemuan: document.getElementById("pertemuan"),
@@ -36,6 +38,11 @@ function createSubjectOptions() {
     option.textContent = subject;
     formElements.mapel.appendChild(option);
   });
+
+  const customOption = document.createElement("option");
+  customOption.value = "__custom__";
+  customOption.textContent = "Lainnya / Custom";
+  formElements.mapel.appendChild(customOption);
 }
 
 function createMaterialOptions(subject) {
@@ -44,20 +51,46 @@ function createMaterialOptions(subject) {
 
   const placeholder = document.createElement("option");
   placeholder.value = "";
-  placeholder.textContent = materials.length
-    ? "Pilih Materi"
-    : "Pilih Mata Pelajaran terlebih dahulu";
+  placeholder.textContent =
+    subject === "__custom__"
+      ? "Masukkan materi secara manual"
+      : materials.length
+        ? "Pilih Materi"
+        : "Pilih Mata Pelajaran terlebih dahulu";
   formElements.materi.appendChild(placeholder);
 
-  materials.forEach((item) => {
-    const option = document.createElement("option");
-    option.value = item;
-    option.textContent = item;
-    formElements.materi.appendChild(option);
-  });
+  if (subject === "__custom__") {
+    const customOption = document.createElement("option");
+    customOption.value = "__custom__";
+    customOption.textContent = "Materi Custom";
+    formElements.materi.appendChild(customOption);
+  } else {
+    materials.forEach((item) => {
+      const option = document.createElement("option");
+      option.value = item;
+      option.textContent = item;
+      formElements.materi.appendChild(option);
+    });
+
+    const customOption = document.createElement("option");
+    customOption.value = "__custom__";
+    customOption.textContent = "Lainnya / Custom";
+    formElements.materi.appendChild(customOption);
+  }
+
+  toggleCustomFields();
 }
 
 function getFormData() {
+  const mapelValue =
+    formElements.mapel.value === "__custom__"
+      ? formElements.customMapel.value.trim()
+      : formElements.mapel.value;
+  const materiValue =
+    formElements.materi.value === "__custom__"
+      ? formElements.customMateri.value.trim()
+      : formElements.materi.value;
+
   return {
     schoolLogo: formElements.schoolLogo.value.trim(),
     sekolah: formElements.sekolah.value.trim(),
@@ -65,25 +98,70 @@ function getFormData() {
     guru: formElements.guru.value.trim(),
     nip: formElements.nip.value.trim(),
     kepalaSekolah: formElements.kepalaSekolah.value.trim(),
+    nipKepala: formElements.nipKepala.value.trim(),
     penyusun: formElements.penyusun.value.trim(),
-    mapel: formElements.mapel.value,
-    materi: formElements.materi.value,
+    mapel: mapelValue,
+    materi: materiValue,
     kelas: formElements.kelas.value.trim(),
     fase: formElements.fase.value.trim(),
     pertemuan: formElements.pertemuan.value.trim(),
     waktu: formElements.waktu.value.trim(),
     tujuan: formElements.tujuan.value.trim(),
+    customMapel: formElements.customMapel.value.trim(),
+    customMateri: formElements.customMateri.value.trim(),
   };
 }
 
 function setFormData(data) {
+  if (
+    typeof data.mapel === "string" &&
+    Object.keys(subjects).includes(data.mapel)
+  ) {
+    formElements.mapel.value = data.mapel;
+    formElements.customMapel.value = "";
+  } else if (typeof data.customMapel === "string" && data.customMapel.trim()) {
+    formElements.mapel.value = "__custom__";
+    formElements.customMapel.value = data.customMapel.trim();
+  } else {
+    formElements.mapel.value = Object.keys(subjects)[0] || "";
+    formElements.customMapel.value = "";
+  }
+
+  createMaterialOptions(formElements.mapel.value);
+
+  const materialList = materiDatabase[formElements.mapel.value] || [];
+  if (typeof data.materi === "string" && materialList.includes(data.materi)) {
+    formElements.materi.value = data.materi;
+    formElements.customMateri.value = "";
+  } else if (
+    typeof data.customMateri === "string" &&
+    data.customMateri.trim()
+  ) {
+    formElements.materi.value = "__custom__";
+    formElements.customMateri.value = data.customMateri.trim();
+  } else if (data.materi && data.materi.trim()) {
+    formElements.materi.value = "__custom__";
+    formElements.customMateri.value = data.materi.trim();
+  } else {
+    formElements.materi.value = "";
+    formElements.customMateri.value = "";
+  }
+
   Object.keys(data).forEach((key) => {
+    if (
+      key === "mapel" ||
+      key === "materi" ||
+      key === "customMapel" ||
+      key === "customMateri"
+    ) {
+      return;
+    }
     if (formElements[key]) {
-      // do not programmatically set file input values (security & browser restriction)
       if (formElements[key].type === "file") return;
-      formElements[key].value = data[key];
+      formElements[key].value = data[key] || "";
     }
   });
+  toggleCustomFields();
 }
 
 function loadFormData() {
@@ -96,14 +174,19 @@ function loadFormData() {
   }
 
   if (!Object.keys(subjects).includes(saved.mapel)) {
-    saved.mapel = Object.keys(subjects)[0] || "";
+    saved.customMapel = saved.mapel;
+    saved.mapel = "__custom__";
+  }
+
+  if (saved.mapel !== "__custom__") {
+    const materials = materiDatabase[saved.mapel] || [];
+    if (saved.materi && !materials.includes(saved.materi)) {
+      saved.customMateri = saved.materi;
+      saved.materi = "__custom__";
+    }
   }
 
   setFormData(saved);
-  createMaterialOptions(saved.mapel);
-  if (saved.materi) {
-    formElements.materi.value = saved.materi;
-  }
 }
 
 function saveFormData() {
@@ -389,6 +472,20 @@ function updateDashboard() {
     .join("");
 }
 
+function toggleCustomFields() {
+  const isCustomSubject = formElements.mapel.value === "__custom__";
+  const isCustomMaterial = formElements.materi.value === "__custom__";
+  const customMapelGroup = document.getElementById("customMapelGroup");
+  const customMateriGroup = document.getElementById("customMateriGroup");
+
+  if (customMapelGroup) {
+    customMapelGroup.classList.toggle("hidden", !isCustomSubject);
+  }
+  if (customMateriGroup) {
+    customMateriGroup.classList.toggle("hidden", !isCustomMaterial);
+  }
+}
+
 function switchView(view) {
   tabButtons.forEach((button) => {
     button.classList.toggle("active", button.dataset.view === view);
@@ -549,6 +646,13 @@ function bindEvents() {
 
   formElements.mapel.addEventListener("change", () => {
     createMaterialOptions(formElements.mapel.value);
+    toggleCustomFields();
+    saveFormData();
+    updatePreview();
+  });
+
+  formElements.materi.addEventListener("change", () => {
+    toggleCustomFields();
     saveFormData();
     updatePreview();
   });
@@ -619,15 +723,15 @@ function bindEvents() {
     if (!printWindow) return;
 
     printWindow.document
-      .write(`<!doctype html><html><head><title>Print Preview</title><style>
-      body { margin: 0; font-family: Inter, Calibri, Arial, sans-serif; }
-      .preview-shell, .preview-document { background: white; box-shadow: none; border-radius: 0; margin: 0; width: auto; max-width: none; padding: 20px; }
-      .preview-document * { color: black; }
-      table { width: 100%; border-collapse: collapse; }
-      th, td { border: 1px solid #d7ebff; padding: 6px 8px; }
-      thead { display: table-header-group; }
-      tfoot { display: table-footer-group; }
-    </style></head><body>
+      .write(`<!doctype html><html><head><title>Print Preview</title>
+      <base href="${window.location.href}">
+      <link rel="stylesheet" href="style.css" />
+      <style>
+        body { margin: 0; font-family: Inter, Calibri, Arial, sans-serif; background: white !important; }
+        .preview-shell, .preview-document { background: white !important; box-shadow: none !important; border-radius: 0 !important; margin: 0 !important; width: auto !important; max-width: none !important; padding: 20px !important; }
+        .preview-document * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      </style>
+    </head><body>
       ${previewSection.innerHTML}
     </body></html>`);
     printWindow.document.close();
